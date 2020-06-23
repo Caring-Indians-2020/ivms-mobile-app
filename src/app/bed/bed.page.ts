@@ -17,7 +17,7 @@ import { PatientData } from '../models/patient-data';
 })
 export class BedPage implements OnInit {
 	private readonly POLL_MS = 5000;
-	private readonly MAX_SPO2_LEN = 100;
+	private readonly MAX_SPO2_LEN = 1000;
 	private readonly spo2Labels = Array(this.MAX_SPO2_LEN).fill(0).map((v, i) => `         `);
 	bedId: number;
 	bed: Bed = {};
