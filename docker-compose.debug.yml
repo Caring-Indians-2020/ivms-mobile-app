@@ -9,4 +9,4 @@ services:
     ports:
       - 8100:8100
     ## set your startup file here
-    command: ionic serve
+    command: ionic serve --no-open --host=0.0.0.0
