@@ -94,11 +94,12 @@ export class BedService {
 
 	getRealtimeData(bedId: number): Observable<MedicDataRealtime> {
 		let url = `${this.apiUrl}/${bedId}/realtime`.replace(/^http/, 'ws');
+		console.log(url);
 		return webSocket<MedicDataRealtime>({
 			url: url,
 		}).pipe(
 			map(data => {
-				// console.log('ws recd data', data);
+				console.log('ws recd data', data);
 				return data;
 			})
 		);

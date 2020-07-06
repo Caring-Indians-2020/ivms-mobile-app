@@ -22,6 +22,8 @@ export class BedPage implements OnInit {
 	bedId: number;
 	bed: Bed = {};
 	spo2ChartData: number[] = Array(this.MAX_SPO2_LEN);
+	ecgChartData: number[] = Array(this.MAX_SPO2_LEN);
+
 	private chartColors = {
 		red: 'rgb(255, 99, 132)',
 		orange: 'rgb(255, 159, 64)',
@@ -37,6 +39,9 @@ export class BedPage implements OnInit {
 
 	@ViewChild("spo2Canvas") spo2Canvas: ElementRef;
 	private spo2Chart: Chart;
+
+	@ViewChild("ecgCanvas") ecgCanvas: ElementRef;
+	private ecgChart: Chart;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -54,7 +59,9 @@ export class BedPage implements OnInit {
 				this.startBedDataPoller();
 			})
 		).subscribe();
-		this.spo2Chart = new Chart(this.spo2Canvas.nativeElement, this.getChartOptions());
+		this.spo2Chart = new Chart(this.spo2Canvas.nativeElement, this.getPPGChartOptions());
+		this.ecgChart = new Chart(this.ecgCanvas.nativeElement, this.getECGChartOptions());
+
 	}
 
 	ionViewDidLeave() {
@@ -97,8 +104,11 @@ export class BedPage implements OnInit {
 					resetOnSuccess: true,
 				}),
 				tap(data => {
-					// console.log('new data', data.ppg);
+					console.log('new data', data.ppg);
+					console.log('new data ecg', data.ecg);
+
 					this.addPPGData(data.ppg);
+					this.addECGGData(data.ecg);
 				}),
 				catchError(err => {
 					console.log(err);
@@ -172,7 +182,7 @@ export class BedPage implements OnInit {
 		this.bedRealtimeDataSub && this.bedRealtimeDataSub.unsubscribe();
 	}
 
-	private getChartOptions(): ChartConfiguration {
+	private getPPGChartOptions(): ChartConfiguration {
 		return {
 			type: 'line',
 			data: {
@@ -222,5 +232,73 @@ export class BedPage implements OnInit {
 			}
 		};
 	}
+
+
+	private getECGChartOptions(): ChartConfiguration {
+		return {
+			type: 'line',
+			data: {
+				labels: this.spo2Labels,
+				datasets: [
+					{
+						label: "ECG",
+						data: this.ecgChartData,
+						showLine: true,
+						fill: false,
+						borderColor: this.chartColors.blue,
+						backgroundColor: this.chartColors.blue,
+						pointRadius: 0,
+					}
+				]
+			},
+			options: {
+				scales: {
+					xAxes: [{
+						// type: 'linear',
+						// distribution: 'series',
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Time'
+						},
+						ticks: {
+							// stepSize: this.MAX_SPO2_LEN / 10
+						}
+					}],
+					yAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Value'
+						},
+						ticks: {
+							suggestedMax: 100,
+							suggestedMin: 50,
+							// stepSize: 20
+						},
+						gridLines: {
+							tickMarkLength: 3
+						}
+					}]
+				}
+			}
+		};
+	}
+
+
+	addECGGData(newData: number[] = []) {
+		this.ecgChartData = this.ecgChartData.concat(newData);
+		if (this.ecgChartData.length > this.MAX_SPO2_LEN) {
+			this.ecgChartData.splice(0, this.ecgChartData.length - this.MAX_SPO2_LEN);
+		}
+		this.ecgChart.data.datasets.forEach(dataset => {
+			dataset.data = this.ecgChartData;
+		});
+		this.ecgChart.update({
+			duration: 0,
+			lazy: true
+		});
+	}
+
 
 }
